@@ -1,0 +1,24 @@
+{
+  "name": "gmail-parser",
+  "version": "1.0.4",
+  "description": "Parse raw Gmail into a Mail object. Raw mail is retrieved by using Gmail API 'messages.get' with query param 'format:raw'.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/RyunDoKim/gmail-parser"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "raw",
+    "gamil",
+    "parser"
+  ],
+  "author": "RyunDo Kim",
+  "license": "MIT",
+  "dependencies": {
+    "iconv": "2.3.0",
+    "quoted-printable": "1.0.1"
+  }
+}
