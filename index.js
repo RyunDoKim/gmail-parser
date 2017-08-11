@@ -96,7 +96,10 @@ function parseToMailObj(rawMail, messageId, callback) {
  * 객체의 정보를 정리합니다.
  */
 function arrangeHeaders(mail){
-    mail.from = `\"${decodeTitle(mail.from)}\" <${/<(.*)>/i.exec(mail.from)[1]}>`;
+    mail.fromname = decodeTitle(mail.from);
+    mail.fromaddress = /<(.*)>/i.exec(mail.from);
+    mail.fromaddress = (mail.fromaddress !== null)? mail.fromaddress[1] : mail.fromname;
+    mail.from = `\"${mail.fromname}\" <${mail.fromaddress}>`;
     mail.subject = decodeTitle(mail.subject);
 }
 /**
