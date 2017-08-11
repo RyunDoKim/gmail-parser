@@ -267,8 +267,11 @@ function decodeByEncoding(raw, encodingOption, charset) {
         case "quoted-printable":
             buffer = new Buffer(quotedPrintable.decode(raw), "binary");
             break;
-        default: // 7bit, 8bit, binary
+        case "binary": // 7bit, 8bit, binary
             buffer = new Buffer(raw, "binary");
+            break;
+        default :
+            buffer= new Buffer(raw);
     }
     if (charset && !charset.match(/UTF-?8/i)) {
         if(charset.match(/KS_C_5601-1987/i)){
