@@ -57,20 +57,6 @@ class Mail {
     constructor(messageId) {
         this.messageid = messageId;
     }
-
-    /**
-     * @description  Parse string content-type information and make a object to hold that. If it has sub attributes (ex. charset, boundary), these will be each property of the object
-     * parseContentType 으로 타입 정보 외에 여러 요소를 갖고 있는 문자열의 content-type을 파싱해 객체로 만들어줍니다. 각각의 요소들은 객체의 속성이됩니다
-     **/
-    parseContentType() {
-        let contentType;
-        let attr;
-        contentType = {type: contentTypeRegEx.exec(this["content-type"])[1]};
-        while ((attr = contentTypeAttrRegEx.exec(this["content-type"])) !== null) {
-            contentType[attr[1]] = decodeTitle(attr[2]);
-        }
-        this["content-type"] = contentType;
-    }
 }
 
 
@@ -88,6 +74,7 @@ class Mail {
  **/
 function parseToMailObj(rawMail, messageId, callback) {
     "use strict";
+    console.log(rawMail);
     let mail = new Mail(messageId);
     try {
         execRegEx(rawMail, dateRegEx, mail);
@@ -96,14 +83,21 @@ function parseToMailObj(rawMail, messageId, callback) {
         execRegEx(rawMail, ccRegEx, mail);
         execRegEx(rawMail, mimeVersionRegEx, mail);
         execRegEx(rawMail, fromRegEx, mail);
-        mail.from = decodeTitle(mail.from);
         execRegEx(rawMail, subjectRegEx, mail);
-        mail.subject = decodeTitle(mail.subject);
+        arrangeHeaders(mail);
         parseContent(rawMail, mail);
     } catch (e) {
         callback(e,mail);
     }
     return mail;
+}
+/**
+ * @description Arrange parsed information. Decode values if needed.
+ * 객체의 정보를 정리합니다.
+ */
+function arrangeHeaders(mail){
+    mail.from = `\"${decodeTitle(mail.from)}\" <${/<(.*)>/i.exec(mail.from)[1]}>`;
+    mail.subject = decodeTitle(mail.subject);
 }
 /**
  * @description Decode subject of mail or title of attached file.
@@ -123,7 +117,6 @@ function decodeTitle(title) {
     }
     return (temp.length > 0) ? temp : title;
 }
-
 /**
  * @description Parse content. Parsed content will be contained the assigned Mail object (mail)
  * 문자열의 메일 본문을 (content) 분석해 전달받은 객체(mail)의 content에 분석 정보를 담습니다
@@ -137,7 +130,7 @@ function decodeTitle(title) {
 function parseContent(content, mail) {
     "use strict";
     execRegEx(content, contentTypesRegEx, mail);
-    mail.parseContentType();
+    parseContentType(mail);
     let contentType = mail["content-type"];
     if (contentType.type.match("multipart/")) {
         mail.content = splitMultipartContent(content, mail);
@@ -153,6 +146,26 @@ function parseContent(content, mail) {
     }
     return mail;
 }
+
+/**
+ * @description  Parse string content-type information and make a object to hold that. If it has sub attributes (ex. charset, boundary), these will be each property of the object
+ * parseContentType 으로 타입 정보 외에 여러 요소를 갖고 있는 문자열의 content-type을 파싱해 객체로 만들어줍니다. 각각의 요소들은 객체의 속성이됩니다
+ * @param {Mail} mail A Mail object.
+ * 매일 객체입니다
+ **/
+function parseContentType(mail) {
+    if(typeof mail["content-type"]!== "string"){
+        return;
+    }
+    let contentType;
+    let attr;
+    contentType = {type: contentTypeRegEx.exec(mail["content-type"])[1]};
+    while ((attr = contentTypeAttrRegEx.exec(mail["content-type"])) !== null) {
+        contentType[attr[1]] = decodeTitle(attr[2]);
+    }
+    mail["content-type"] = contentType;
+}
+
 /**
  * @description Parse string using Regular Expressions and compose mail object using the result.
  * RegExp를 이용해 문자열을 분석하고 결과에 맞춰 Mail 객체를 구성합니다
