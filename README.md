@@ -19,17 +19,19 @@ with 'format :raw' query param.
 Parse Gmail.raw into a Mail object. 
 
 ***rawMail*** : Response from Gmail API  ['gmail.users.messages.get'](https://developers.google.com/gmail/api/v1/reference/users/messages/get?hl=ko) with 'format :raw' query param.  
-***callback*** : Will get error and mail. Even on error, it will take mail imperfectly.
+***callback*** : Will get ***error, mail object, and base64 decoded String raw mail***. Even on error, it will take mail imperfectly.
 
 ```javascript
 const gmailParser = require('gmail-parser');
 
-gmailParser.parseGmail(rawMail,(err, mail)=>{
+gmailParser.parseGmail(rawMail,(err, mail, decodedRawMail)=>{
     if(err){
         console.error(err); 
-        console.log(mail) //Imperfect, but at least it contains the messageId.
+        console.log(mail); //Imperfect, but at least it contains the messageId.
+        console.log(decodedRawMail); //You can use the rawMail for debuging
     }
     console.dir(mail);
+    console.log(decodedRawMail);
 });
 
 let mail = gmailParser.parseGmail(rawMail);
@@ -49,19 +51,21 @@ gmail.users.messages.get({auth:OAuth2, userId:'me', id:messageId, format:'raw'},
 Takes String type raw Gmail. 
 The value of property 'raw' of response from Gmail API users.messages.get() Method.
 
-***stringMail*** : Value of property 'raw' of response from Gmail API  ['gmail.users.messages.get'](https://developers.google.com/gmail/api/v1/reference/users/messages/get?hl=ko) with 'format :raw' query param.  
-***messageId*** : Gmail messageId. You can use your own custom Id for the Mail object. 
-***callback*** : Will get error and mail. Even on error, it will take mail imperfectly.
+***stringMail*** : Value of property 'raw' of response from Gmail API  ['gmail.users.messages.get'](https://developers.google.com/gmail/api/v1/reference/users/messages/get?hl=ko) with 'format :raw' query param.   
+***messageId*** : Gmail messageId. You can use your own custom Id for the Mail object.  
+***callback*** : Will get ***error, mail object, and base64 decoded String raw mail***. Even on error, it will take mail imperfectly.
 
 ```javascript
 const gmailParser = require('gmail-parser');
 
-gmailParser.parseStringGmail(stringMail, messageId ,(err, mail)=>{
+gmailParser.parseStringGmail(stringMail, messageId ,(err, mail, decodedRawMail)=>{
     if(err){
         console.error(err);
         console.log(mail) //Imperfect, but at least it contains the messageId.
+        console.log(decodedRawMail); //You can use the rawMail for debuging
     }
     console.dir(mail);
+    console.log(decodedRawMail);
 });
 
 let mail = gmailParser.parseGmail(StringMail, messageId);
@@ -121,7 +125,7 @@ console.log(mail.content);
 ```
 
 * Content as Array  
-***Content can be an array when the content-type is 'multipart' each part is parsed into a Mail object. Sometimes you will see dual multiparts***
+***Content can be an array when the content-type is 'multipart' each part is parsed into a Mail object. Sometimes you will see dual multiparts which means that inner sub mail has multipart content-type especially when mail has attachment***
 ```javascript
 mail.forEach((content)=>{
         console.log(content);

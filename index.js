@@ -27,19 +27,19 @@
 
 const quotedPrintable = require("quoted-printable");
 const Iconv = require("iconv").Iconv;
-const dateRegEx = /(Date):\s([^\n\r]+?)\r?\n/i;
-const fromRegEx = /(From):\s([^\n\r]+?)\r?\n/i;
-const toRegEx = /(To):\s([^\n\r]+?)\r?\n/i;
-const replyToRegEx = /(Reply-To):\s([^\n\r]+?)\r?\n/i;
-const ccRegEx = /(CC):\s([^\n\r]+?)\r?\n/i;
-const mimeVersionRegEx = /(Mime-Version):\s([^\n\r]+?)\r?\n/i;
-const subjectRegEx = /(Subject):\s((=\?[\s\S]+\?=)|([^\n\r]+))/i;
-const titleEncodingRegEx = /=\?(.*?)\?([BQ])\?([\S]+?)\?=/gi;
-const contentTypesRegEx = /(Content-Type):\s([^;\s]*?([;\s]+[^:\s]+)?)\s+/i;
-const contentTypeAttrRegEx = /([^=;\s]+)="?([^;"\s]+)"?;?/gi;
-const contentTypeRegEx = /([^;\s]+);?/i;
-const contentTransferEncodingRegEx = /(Content-Transfer-Encoding):\s([^;\s]*)\s/i;
-const contentRegEx = /(?:\r?\n){2,}([\s\S]+)/i;
+const DATE_REGEX = /(Date):\s([^\n\r]+?)\r?\n/i;
+const FROM_REGEX = /(From):\s([^\n\r]+?)\r?\n/i;
+const TO_REGEX = /(To):\s([^\n\r]+?)\r?\n/i;
+const REPLY_TO_REGEX = /(Reply-To):\s([^\n\r]+?)\r?\n/i;
+const CC_REGEX = /(CC):\s([^\n\r]+?)\r?\n/i;
+const MIME_VERSION_REGEX = /(Mime-Version):\s([^\n\r]+?)\r?\n/i;
+const SUBJECT_REGEX = /(Subject):\s((=\?[\s\S]+\?=)|([^\n\r]+))/i;
+const TITLE_ENCODING_REGEX = /=\?(.*?)\?([BQ])\?([\S]+?)\?=/gi;
+const CONTENT_TYPES_REGEX = /(Content-Type):\s([^;\s]*?([;\s]+[^:\s]+)?)\s+/i;
+const CONTENT_TYPE_ATTRIBUTE_REGEX = /([^=;\s]+)="?([^;"\s]+)"?;?/gi;
+const CONTENT_TYPE_REGEX = /([^;\s]+);?/i;
+const CONTENT_TRANSFER_ENCODING_REGEX = /(Content-Transfer-Encoding):\s([^;\s]*)\s/i;
+const CONTENT_REGEX = /(?:\r?\n){2,}([\s\S]+)/i;
 
 
 /**
@@ -74,20 +74,19 @@ class Mail {
  **/
 function parseToMailObj(rawMail, messageId, callback) {
     "use strict";
-    console.log(rawMail);
     let mail = new Mail(messageId);
     try {
-        execRegEx(rawMail, dateRegEx, mail);
-        execRegEx(rawMail, toRegEx, mail);
-        execRegEx(rawMail, replyToRegEx, mail);
-        execRegEx(rawMail, ccRegEx, mail);
-        execRegEx(rawMail, mimeVersionRegEx, mail);
-        execRegEx(rawMail, fromRegEx, mail);
-        execRegEx(rawMail, subjectRegEx, mail);
+        execRegEx(rawMail, DATE_REGEX, mail);
+        execRegEx(rawMail, TO_REGEX, mail);
+        execRegEx(rawMail, REPLY_TO_REGEX, mail);
+        execRegEx(rawMail, CC_REGEX, mail);
+        execRegEx(rawMail, MIME_VERSION_REGEX, mail);
+        execRegEx(rawMail, FROM_REGEX, mail);
+        execRegEx(rawMail, SUBJECT_REGEX, mail);
         arrangeHeaders(mail);
         parseContent(rawMail, mail);
     } catch (e) {
-        callback(e,mail);
+        callback(e, mail, rawMail);
     }
     return mail;
 }
@@ -95,10 +94,10 @@ function parseToMailObj(rawMail, messageId, callback) {
  * @description Arrange parsed information. Decode values if needed.
  * 객체의 정보를 정리합니다.
  */
-function arrangeHeaders(mail){
+function arrangeHeaders(mail) {
     mail.fromname = decodeTitle(mail.from);
     mail.fromaddress = /<(.*)>/i.exec(mail.from);
-    mail.fromaddress = (mail.fromaddress !== null)? mail.fromaddress[1] : mail.fromname;
+    mail.fromaddress = (mail.fromaddress !== null) ? mail.fromaddress[1] : mail.fromname;
     mail.from = `\"${mail.fromname}\" <${mail.fromaddress}>`;
     mail.subject = decodeTitle(mail.subject);
 }
@@ -113,10 +112,10 @@ function arrangeHeaders(mail){
 function decodeTitle(title) {
     "use strict";
     let temp = "";
-    let result = titleEncodingRegEx.exec(title);
+    let result = TITLE_ENCODING_REGEX.exec(title);
     while (result !== null) {
         temp += decodeByEncoding(result[3], result[2], result[1].toUpperCase());
-        result = titleEncodingRegEx.exec(title)
+        result = TITLE_ENCODING_REGEX.exec(title)
     }
     return (temp.length > 0) ? temp : title;
 }
@@ -132,19 +131,19 @@ function decodeTitle(title) {
  **/
 function parseContent(content, mail) {
     "use strict";
-    execRegEx(content, contentTypesRegEx, mail);
+    execRegEx(content, CONTENT_TYPES_REGEX, mail);
     parseContentType(mail);
     let contentType = mail["content-type"];
     if (contentType.type.match("multipart/")) {
         mail.content = splitMultipartContent(content, mail);
     } else if (contentType.type.match("text/")) {
-        if (execRegEx(content, contentTransferEncodingRegEx, mail)) {
-            content = contentRegEx.exec(content)[1];
+        if (execRegEx(content, CONTENT_TRANSFER_ENCODING_REGEX, mail)) {
+            content = CONTENT_REGEX.exec(content)[1];
             content = decodeByEncoding(content, mail["content-transfer-encoding"], mail["content-type"].charset);
         }
         mail.content = content;
     } else {
-        content = contentRegEx.exec(content)[1];
+        content = CONTENT_REGEX.exec(content)[1];
         mail.content = content;
     }
     return mail;
@@ -157,13 +156,13 @@ function parseContent(content, mail) {
  * 매일 객체입니다
  **/
 function parseContentType(mail) {
-    if(typeof mail["content-type"]!== "string"){
+    if (typeof mail["content-type"] !== "string") {
         return;
     }
     let contentType;
     let attr;
-    contentType = {type: contentTypeRegEx.exec(mail["content-type"])[1]};
-    while ((attr = contentTypeAttrRegEx.exec(mail["content-type"])) !== null) {
+    contentType = {type: CONTENT_TYPE_REGEX.exec(mail["content-type"])[1]};
+    while ((attr = CONTENT_TYPE_ATTRIBUTE_REGEX.exec(mail["content-type"])) !== null) {
         contentType[attr[1]] = decodeTitle(attr[2]);
     }
     mail["content-type"] = contentType;
@@ -271,12 +270,12 @@ function decodeByEncoding(raw, encodingOption, charset) {
             buffer = new Buffer(raw, "binary");
             break;
         default :
-            buffer= new Buffer(raw);
+            buffer = new Buffer(raw);
     }
     if (charset && !charset.match(/UTF-?8/i)) {
-        if(charset.match(/KS_C_5601-1987/i)){
+        if (charset.match(/KS_C_5601-1987/i)) {
             charset = "CP949";
-        }else if(charset.match(/(KSC5601|KSC5636)/i)){
+        } else if (charset.match(/(KSC5601|KSC5636)/i)) {
             charset = "EUC-KR";
         }
         let iconv = new Iconv(charset, "UTF-8//TRANSLIT//IGNORE");
@@ -290,14 +289,15 @@ function decodeByEncoding(raw, encodingOption, charset) {
  * Gmail의 raw 데이터를 분석해 Mail 객체로 만듭니다
  * @param {object} rawMail the result of Gmail Api users.messages.get() with query param format: "raw".
  * 쿼리 인수로 format: "raw"를 사용한 Gmail Api users.messages.get() 응답 결과입니다
- * @param {function} callback
+ * @param {function} callback Takes Error, Mail Object, and Decoded Raw String Email.
+ * 에러, Mail 객체, 디코딩된 문자열의 메일 원본을 전달받는 콜백입니다
  * @returns {Mail} Return Parsed Mail object.
  */
 exports.parseGmail = function (rawMail, callback) {
     let decodedRawMail = decodeByEncoding(rawMail.raw, "B");
     let mail = parseToMailObj(decodedRawMail, rawMail.id, callback);
     if (callback) {
-        callback(null, mail);
+        callback(null, mail, decodedRawMail);
     }
     return mail;
 };
@@ -308,14 +308,15 @@ exports.parseGmail = function (rawMail, callback) {
  * Gmail.raw의 값인 문자열로된 메일정보입니다
  * @param {string} messageId Gmail messageId which used as a query param on users.messages.get() method.
  * Gmail Id입니다.
- * @param {function} callback
+ * @param {function} callback Takes Error, Mail Object, and Decoded Raw String Email.
+ * 에러, Mail 객체, 디코딩된 문자열의 메일 원본을 전달받는 콜백입니다
  * @returns {Mail} Return Parsed Mail object.
  */
 exports.parseStringGmail = function (stringMail, messageId, callback) {
     let decodedRawMail = decodeByEncoding(stringMail, "B");
     let mail = parseToMailObj(decodedRawMail, messageId, callback);
     if (callback) {
-        callback(null, mail);
+        callback(null, mail, decodedRawMail);
     }
     return mail;
 };
