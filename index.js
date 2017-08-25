@@ -27,18 +27,18 @@
 
 const quotedPrintable = require("quoted-printable");
 const Iconv = require("iconv").Iconv;
-const DATE_REGEX = /(Date):\s([^\n\r]+?)\r?\n/i;
-const FROM_REGEX = /(From):\s([^\n\r]+?)\r?\n/i;
-const TO_REGEX = /(To):\s([^\n\r]+?)\r?\n/i;
-const REPLY_TO_REGEX = /(Reply-To):\s([^\n\r]+?)\r?\n/i;
-const CC_REGEX = /(CC):\s([^\n\r]+?)\r?\n/i;
-const MIME_VERSION_REGEX = /(Mime-Version):\s([^\n\r]+?)\r?\n/i;
-const SUBJECT_REGEX = /(Subject):\s((=\?[\s\S]+\?=)|([^\n\r]+))/i;
+const DATE_REGEX = /\n(Date):\s([^\n\r]+?)\r?\n/i;
+const FROM_REGEX = /\n(From):\s([^\n\r]+?)\r?\n/i;
+const TO_REGEX = /\n(To):\s([^\n\r]+?)\r?\n/i;
+const REPLY_TO_REGEX = /\n(Reply-To):\s([^\n\r]+?)\r?\n/i;
+const CC_REGEX = /\n(CC):\s([^\n\r]+?)\r?\n/i;
+const MIME_VERSION_REGEX = /\n(Mime-Version):\s([^\n\r]+?)\r?\n/i;
+const SUBJECT_REGEX = /\n(Subject):\s((=\?[\s\S]+\?=)|([^\n\r]+))/i;
 const TITLE_ENCODING_REGEX = /=\?(.*?)\?([BQ])\?([\S]+?)\?=/gi;
-const CONTENT_TYPES_REGEX = /(Content-Type):\s([^;\s]*?([;\s]+[^:\s]+)?)\s+/i;
+const CONTENT_TYPES_REGEX = /\n(Content-Type):\s([^;\s]*?([;\s]+[^:\s]+)?)\s+/i;
 const CONTENT_TYPE_ATTRIBUTE_REGEX = /([^=;\s]+)="?([^;"\s]+)"?;?/gi;
 const CONTENT_TYPE_REGEX = /([^;\s]+);?/i;
-const CONTENT_TRANSFER_ENCODING_REGEX = /(Content-Transfer-Encoding):\s([^;\s]*)\s/i;
+const CONTENT_TRANSFER_ENCODING_REGEX = /\n(Content-Transfer-Encoding):\s([^;\s]*)\s/i;
 const CONTENT_REGEX = /(?:\r?\n){2,}([\s\S]+)/i;
 
 
