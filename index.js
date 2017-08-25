@@ -208,7 +208,7 @@ function composeMail(regExResult, mail) {
         if (idx % 3 === 1) {
             tag = regExResult[idx].toLowerCase();
         } else if (idx % 3 === 2) {
-            mail[tag] = regExResult[idx];
+            mail[tag] = regExResult[idx].concat();
         }
     }
 }
