@@ -1,6 +1,6 @@
 {
   "name": "gmail-parser",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Parse raw Gmail into a Mail object. Raw mail is retrieved by using Gmail API 'messages.get' with query param 'format:raw'.",
   "main": "index.js",
   "repository": {

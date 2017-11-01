@@ -27,8 +27,8 @@
 
 const quotedPrintable = require("quoted-printable");
 const Iconv = require("iconv").Iconv;
-const DATE_REGEX = /\n(Date):\s([^\n\r]+?)\r?\n/i;
 const FROM_REGEX = /\n(From):\s([^\n\r]+?)\r?\n/i;
+const DATE_REGEX = /\n(Date):\s([^\n\r]+?)\r?\n/i;
 const TO_REGEX = /\n(To):\s([^\n\r]+?)\r?\n/i;
 const REPLY_TO_REGEX = /\n(Reply-To):\s([^\n\r]+?)\r?\n/i;
 const CC_REGEX = /\n(CC):\s([^\n\r]+?)\r?\n/i;
@@ -138,8 +138,13 @@ function parseContent(content, mail) {
         mail.content = splitMultipartContent(content, mail);
     } else if (contentType.type.match("text/")) {
         if (execRegEx(content, CONTENT_TRANSFER_ENCODING_REGEX, mail)) {
-            content = CONTENT_REGEX.exec(content)[1];
-            content = decodeByEncoding(content, mail["content-transfer-encoding"], mail["content-type"].charset);
+            let regResult = CONTENT_REGEX.exec(content);
+            if(regResult) {
+                content = CONTENT_REGEX.exec(content)[1];
+                content = decodeByEncoding(content, mail["content-transfer-encoding"], mail["content-type"].charset);
+            } else{
+                content = ""
+            }
         }
         mail.content = content;
     } else {
