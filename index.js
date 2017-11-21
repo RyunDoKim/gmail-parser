@@ -33,7 +33,7 @@ const TO_REGEX = /\n(To):\s([^\n\r]+?)\r?\n/i;
 const REPLY_TO_REGEX = /\n(Reply-To):\s([^\n\r]+?)\r?\n/i;
 const CC_REGEX = /\n(CC):\s([^\n\r]+?)\r?\n/i;
 const MIME_VERSION_REGEX = /\n(Mime-Version):\s([^\n\r]+?)\r?\n/i;
-const SUBJECT_REGEX = /\n(Subject):\s((=\?[\s\S]+\?=)|([^\n\r]+))/i;
+const SUBJECT_REGEX = /\n(Subject):\s*((=\?[\s\S]+\?=)|([^\n\r]+))/i;
 const TITLE_ENCODING_REGEX = /=\?(.*?)\?([BQ])\?([\S]+?)\?=/gi;
 const CONTENT_TYPES_REGEX = /\n(Content-Type):\s([^;\s]*?([;\s]+[^:\s]+)?)\s+/i;
 const CONTENT_TYPE_ATTRIBUTE_REGEX = /([^=;\s]+)="?([^;"\s]+)"?;?/gi;
