@@ -207,7 +207,7 @@ function composeMail(regExResult, mail) {
     "use strict";
     let tag = "";
     for (let idx = 0; idx < regExResult.length; idx++) {
-        if (regExResult[idx] === undefined) {
+        if (!regExResult[idx]) {
             continue;
         }
         if (idx % 3 === 1) {
